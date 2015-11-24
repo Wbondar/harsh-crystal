@@ -2,7 +2,6 @@ package pl.chelm.pwsz.harsh_crystal;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,9 +46,24 @@ public final class Board {
 			return occupant;
 		}
 		
-		public final Stream<Position> getNeighborhood() {
+		public final Stream<Position> getNeighborhoodStream() {
 			return board.positions.parallelStream()
-					.filter((Predicate<Position>)new NeighborhoodPredicate(this));
+					.filter(p -> p.isNeighbor(this));
+		}
+		
+		public final Set<Position> getNeighborhood() {
+			return getNeighborhoodStream().collect(Collectors.toSet());
+		}
+		
+		public final boolean isNeighbor (Position assumedNeighbor) {
+			if (assumedNeighbor.getBoard() == board) {
+				if (assumedNeighbor != this) {
+					if (assumedNeighbor.getX() >= x - 1 && assumedNeighbor.getY() >= y - 1) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 		
 		public final boolean isEmpty() {
