@@ -32,4 +32,8 @@ public final class ActorType {
 			return false;
 		return true;
 	}
+
+	public final int getId() {
+		return id;
+	}
 }

@@ -1,8 +1,11 @@
 package pl.chelm.pwsz.harsh_crystal;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 /**
  * Board class represents a filed (or "magic circle", as it sometimes referred),
@@ -15,8 +18,8 @@ import java.util.stream.Stream;
 public final class Board {
 	private final int width;
 	private final int height;
-	private final Set<Position> positions;
-	
+	private final Actor[][] grid;
+
 	/**
 	 * Position class represents a single cell on a board.
 	 * Position is implemented as an inner class towards Board class,
@@ -30,6 +33,7 @@ public final class Board {
 		private final int x;
 		private final int y;
 		private final Board board;
+		
 		
 		private Position(final Board board, int x, int y) {
 			this.board = board;
@@ -65,7 +69,7 @@ public final class Board {
 		}
 		
 		public final Stream<? extends Position> getNeighborhoodStream() {
-			return board.positions.parallelStream()
+			return board.getPositionsStream()
 					.filter(p -> p.isNeighbor(this));
 		}
 		
@@ -108,8 +112,7 @@ public final class Board {
 				}
 				updatedPosition = new EmptyPosition(board, x, y);
 			}
-			board.positions.remove(this);
-			board.positions.add(updatedPosition);
+			board.grid[x][y] = actorToPlaceOnThePosition;
 			return updatedPosition;
 		}
 
@@ -143,6 +146,7 @@ public final class Board {
 			super(board, x, y);
 		}
 		
+		@Override
 		public final Actor getOccupant() {
 			return null;
 		}
@@ -160,20 +164,21 @@ public final class Board {
 			this.occupant = occupant;
 		}
 		
+		@Override
 		public final Actor getOccupant() {
 			return occupant;
 		}
 	}
 	
-	private Board(int width, int height, Set<Position> positions) {
+	private Board(int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.positions = positions;
+		this.grid = new Actor[width][height];
 	}
 	
 	public static Board newInstance (int width, int height) {
 		if (width > 0 && height > 0) {
-			return new Board(width, height, new HashSet<Position>());
+			return new Board(width, height);
 		}
 		return null;
 	}
@@ -186,7 +191,20 @@ public final class Board {
 		return height;
 	}
 	
+	private final Position newPosition(int x, int y, Actor actor) {
+		if (actor == null) {
+			return new EmptyPosition(this, x, y);
+		}
+		return new OccupiedPosition(this, x, y, actor);
+	}
+	
 	public final Stream<? extends Position> getPositionsStream() {
+		/* TODO: Make sense out of this mess. */
+		Set<Position> positions = new HashSet<>();
+		IntStream
+			.range(0, width)
+			.forEach(x -> IntStream.range(0, height).forEach(y -> positions.add(newPosition(x, y, grid[x][y]))))
+			;
 		return positions.parallelStream();
 	}
 	
@@ -217,6 +235,15 @@ public final class Board {
 				.collect(Collectors.toSet());
 	}
 	
+	public final EmptyPosition getRandomEmptyPosition() {
+		try
+		{
+			return getEmptyPositionsStream().findAny().get();
+		} catch (java.util.NoSuchElementException e) {
+			return null;
+		}
+	}
+	
 	public final Stream<Actor> getActorsStream() {
 		return getOccupiedPositionsStream()
 				.map(Position::getOccupant);
@@ -224,6 +251,16 @@ public final class Board {
 	
 	public final Set<Actor> getActors() {
 		return getActorsStream()
+				.collect(Collectors.toSet());
+	}
+	
+	public final Stream<ActorType> getActorTypesStream() {
+		return getActorsStream()
+				.map(a -> a.getType());
+	}
+	
+	public final Set<ActorType> getActorTypes() {
+		return getActorTypesStream()
 				.collect(Collectors.toSet());
 	}
 }

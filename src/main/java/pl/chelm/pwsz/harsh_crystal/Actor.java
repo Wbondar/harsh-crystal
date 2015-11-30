@@ -35,4 +35,9 @@ public final class Actor {
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return String.valueOf(this.type.getId());
+	}
 }

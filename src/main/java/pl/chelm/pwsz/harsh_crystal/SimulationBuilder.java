@@ -1,21 +1,35 @@
 package pl.chelm.pwsz.harsh_crystal;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
-public final class SimulationBuilder {
-	private Class<? extends Simulation> currentSimulationType = null;
-	private int                         currentBoardWidth     = 1;
-	private int                         currentBoardHeight    = 1;
+public abstract class SimulationBuilder {
+	private int currentBoardWidth  = 1;
+	private int currentBoardHeight = 1;
 	
-	public SimulationBuilder() {}
-
-	public final SimulationBuilder setType (final Class<? extends Simulation> newSimulationType) {
-		if (!Modifier.isAbstract(newSimulationType.getModifiers())) {
-			currentSimulationType = newSimulationType;
-		} else {
-			currentSimulationType = null;
+	SimulationBuilder() {}
+	
+	public final SimulationBuilder setParameter(String key, final Object value) {
+		key = key.trim();
+		try {
+			this.getClass()
+			.getMethod("set" + Character.toTitleCase(key.charAt(0)) + key.substring(1), value.getClass())
+			.invoke(this, value);
+		} catch (Exception e) {
+			/* Do nothing. */
 		}
 		return this;
+	}
+	
+	protected final <V> V getParameter(final String key) {
+		try {
+			return (V)this.getClass().getDeclaredField(key.trim()).get(this);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 	
 	public final SimulationBuilder setBoardWidth(final int newBoardWidth) {
@@ -36,13 +50,17 @@ public final class SimulationBuilder {
 		return this;
 	}
 	
-	public final Simulation build() {
-		try {
-			return currentSimulationType
-					.getConstructor(Board.class)
-					.newInstance(Board.newInstance(currentBoardWidth, currentBoardHeight));
-		} catch (Exception e) {
-			throw new AssertionError("Failed to build a simulation.", e);
-		}
+	public final int getBoardWidth() {
+		return currentBoardWidth;
+	}
+	
+	public final int getBoardHeight() {
+		return currentBoardHeight;
+	}
+	
+	public abstract Simulation build();
+
+	public final Board newBoard() {
+		return Board.newInstance(currentBoardWidth, currentBoardHeight);
 	}
 }

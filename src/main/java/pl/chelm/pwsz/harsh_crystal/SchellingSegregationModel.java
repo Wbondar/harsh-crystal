@@ -14,6 +14,16 @@ public final class SchellingSegregationModel extends Simulation {
 		this.tolerance = tolerance;
 	}
 	
+	public static SchellingSegregationModel newInstance(final Board board, final double tolerance) {
+		if (board == null) {
+			return null;
+		}
+		if (tolerance > 0. && tolerance < 1.) {
+			return new SchellingSegregationModel(board, tolerance);
+		}
+		return new SchellingSegregationModel(board, 0.3);
+	}
+	
 	private boolean isPositionTolerableForKin(final Board.Position positionToCheck, final ActorType kinToCheck) {
 		long quantityOfAllies = positionToCheck
 				.getOccupiedNeighborhoodStream()
@@ -30,6 +40,11 @@ public final class SchellingSegregationModel extends Simulation {
 	
 	private boolean isOccupantUnsatisfied(final Board.OccupiedPosition occupiedPosition) {
 		return isPositionTolerableForKin(occupiedPosition, occupiedPosition.getOccupant().getType());
+	}
+
+	
+	private boolean isOccupantSatisfied(final Board.OccupiedPosition occupiedPosition) {
+		return !isOccupantUnsatisfied(occupiedPosition);
 	}
 	
 	private final Stream<Board.OccupiedPosition> getUnsatisfiedOccupiedPositionsStream() {
@@ -49,21 +64,22 @@ public final class SchellingSegregationModel extends Simulation {
 		Optional<Board.EmptyPosition> aim = getTolerableNeighborhoodStream(positionOfActorToRelocate).findFirst();
 		if (aim.isPresent()) {
 			aim.get().swap(positionOfActorToRelocate);
-		} else {
-			positionOfActorToRelocate.empty();
+		//} else {
+			//positionOfActorToRelocate.empty();
 		}
 	}
 	
 	@Override
 	public final boolean isFinished() {
 		return !getUnsatisfiedOccupiedPositionsStream()
-				.findAny().isPresent();
+					.findAny().isPresent();	
 	}
 	
 	@Override
 	public void run() {
-		if (isOngoing()) {
+		while (isOngoing()) {
 			getUnsatisfiedOccupiedPositionsStream().forEach(p -> this.relocateOrKillOccupant(p));	
+			/* TODO: Implement graphical representation. */
 		}
 	}
 
