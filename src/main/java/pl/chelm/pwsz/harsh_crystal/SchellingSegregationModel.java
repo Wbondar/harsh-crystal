@@ -64,8 +64,8 @@ public final class SchellingSegregationModel extends Simulation {
 		Optional<Board.EmptyPosition> aim = getTolerableNeighborhoodStream(positionOfActorToRelocate).findFirst();
 		if (aim.isPresent()) {
 			aim.get().swap(positionOfActorToRelocate);
-		//} else {
-			//positionOfActorToRelocate.empty();
+		} else {
+			positionOfActorToRelocate.empty();
 		}
 	}
 	
@@ -78,7 +78,8 @@ public final class SchellingSegregationModel extends Simulation {
 	@Override
 	public void run() {
 		while (isOngoing()) {
-			getUnsatisfiedOccupiedPositionsStream().forEach(p -> this.relocateOrKillOccupant(p));	
+			getUnsatisfiedOccupiedPositionsStream()
+			.forEach(p -> this.relocateOrKillOccupant(p));	
 			/* TODO: Implement graphical representation. */
 		}
 	}

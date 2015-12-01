@@ -1,66 +1,44 @@
 package pl.chelm.pwsz.harsh_crystal;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
+import java.beans.PropertyDescriptor;
 
 public abstract class SimulationBuilder {
-	private int currentBoardWidth  = 1;
-	private int currentBoardHeight = 1;
+	private final BoardBuilder boardBuilder;
 	
-	SimulationBuilder() {}
+	SimulationBuilder() {
+		this(new BoardBuilder());
+	}
 	
-	public final SimulationBuilder setParameter(String key, final Object value) {
-		key = key.trim();
+	SimulationBuilder(BoardBuilder boardBuilder) {
+		assert boardBuilder != null;
+		this.boardBuilder = boardBuilder;
+	}
+	
+	public final BoardBuilder getBoardBuilder() {
+		return boardBuilder;
+	}
+	
+	public final <V> SimulationBuilder setProperty(String key, final V value) {
 		try {
-			this.getClass()
-			.getMethod("set" + Character.toTitleCase(key.charAt(0)) + key.substring(1), value.getClass())
+			(new PropertyDescriptor(key, this.getClass()))
+			.getWriteMethod()
 			.invoke(this, value);
 		} catch (Exception e) {
-			/* Do nothing. */
+			e.printStackTrace();
 		}
 		return this;
 	}
 	
-	protected final <V> V getParameter(final String key) {
+	public final <V> V getProperty(final String key) {
 		try {
-			return (V)this.getClass().getDeclaredField(key.trim()).get(this);
+			return (V)(new PropertyDescriptor(key, this.getClass()))
+			.getReadMethod()
+			.invoke(this);
 		} catch (Exception e) {
-			return null;
+			e.printStackTrace();
 		}
-	}
-	
-	public final SimulationBuilder setBoardWidth(final int newBoardWidth) {
-		if (newBoardWidth < 1) {
-			currentBoardWidth = 1;
-		} else {
-			currentBoardWidth = newBoardWidth;
-		}
-		return this;
-	}
-	
-	public final SimulationBuilder setBoardHeight(final int newBoardHeight) {
-		if (newBoardHeight < 1) {
-			currentBoardHeight = 1;
-		} else {
-			currentBoardHeight = newBoardHeight;
-		}
-		return this;
-	}
-	
-	public final int getBoardWidth() {
-		return currentBoardWidth;
-	}
-	
-	public final int getBoardHeight() {
-		return currentBoardHeight;
+		return null;
 	}
 	
 	public abstract Simulation build();
-
-	public final Board newBoard() {
-		return Board.newInstance(currentBoardWidth, currentBoardHeight);
-	}
 }

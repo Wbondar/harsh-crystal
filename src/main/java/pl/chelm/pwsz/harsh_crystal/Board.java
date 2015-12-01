@@ -1,9 +1,7 @@
 package pl.chelm.pwsz.harsh_crystal;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -99,20 +97,20 @@ public final class Board {
 		 * and replaces given position with newly created on the board.
 		 * It is done so for the sake of immutablility, parallel programming 
 		 * and performance in the long run.
-		 * @param actorToPlaceOnThePosition
+		 * @param newOccupant
 		 * @return
 		 */
-		public final Position setOccupant(final Actor actorToPlaceOnThePosition) {
+		public final Position setOccupant(final Actor newOccupant) {
 			Position updatedPosition = null;
-			if (actorToPlaceOnThePosition != null) {
-				updatedPosition = new OccupiedPosition (board, x, y, actorToPlaceOnThePosition);
+			if (newOccupant != null) {
+				updatedPosition = new OccupiedPosition (board, x, y, newOccupant);
 			} else {
 				if (this.isEmpty()) {
 					return this;
 				}
 				updatedPosition = new EmptyPosition(board, x, y);
 			}
-			board.grid[x][y] = actorToPlaceOnThePosition;
+			board.grid[x][y] = newOccupant;
 			return updatedPosition;
 		}
 
@@ -134,6 +132,44 @@ public final class Board {
 		
 		public final boolean isEmpty() {
 			return getOccupant() == null;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((board == null) ? 0 : board.hashCode());
+			result = prime * result + x;
+			result = prime * result + y;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Position other = (Position) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (board == null) {
+				if (other.board != null)
+					return false;
+			} else if (!board.equals(other.board))
+				return false;
+			if (x != other.x)
+				return false;
+			if (y != other.y)
+				return false;
+			return true;
+		}
+
+		private Board getOuterType() {
+			return Board.this;
 		}
 	}
 	
@@ -191,21 +227,22 @@ public final class Board {
 		return height;
 	}
 	
-	private final Position newPosition(int x, int y, Actor actor) {
-		if (actor == null) {
+	private final Position getPosition(int x, int y) {
+		/* 
+		 * NOTE: In case method will end up as public,
+		 * ensure, that provided coordinates respect bounds. 
+		 */
+		final Actor occupant = grid[x][y];
+		if (occupant == null) {
 			return new EmptyPosition(this, x, y);
 		}
-		return new OccupiedPosition(this, x, y, actor);
+		return new OccupiedPosition(this, x, y, occupant);
 	}
 	
 	public final Stream<? extends Position> getPositionsStream() {
-		/* TODO: Make sense out of this mess. */
-		Set<Position> positions = new HashSet<>();
-		IntStream
-			.range(0, width)
-			.forEach(x -> IntStream.range(0, height).forEach(y -> positions.add(newPosition(x, y, grid[x][y]))))
-			;
-		return positions.parallelStream();
+		return IntStream.range(0, width)
+				.boxed()
+				.flatMap(x -> IntStream.range(0, height).mapToObj(y -> getPosition(x, y)));
 	}
 	
 	public final Set<? extends Position> getPositions() {
@@ -235,18 +272,8 @@ public final class Board {
 				.collect(Collectors.toSet());
 	}
 	
-	public final EmptyPosition getRandomEmptyPosition() {
-		try
-		{
-			return getEmptyPositionsStream().findAny().get();
-		} catch (java.util.NoSuchElementException e) {
-			return null;
-		}
-	}
-	
 	public final Stream<Actor> getActorsStream() {
-		return getOccupiedPositionsStream()
-				.map(Position::getOccupant);
+		return Arrays.stream(grid).flatMap(Arrays::stream).filter(a -> a != null);
 	}
 	
 	public final Set<Actor> getActors() {
@@ -256,11 +283,40 @@ public final class Board {
 	
 	public final Stream<ActorType> getActorTypesStream() {
 		return getActorsStream()
-				.map(a -> a.getType());
+				.map(Actor::getType)
+				.distinct();
 	}
 	
 	public final Set<ActorType> getActorTypes() {
 		return getActorTypesStream()
 				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.deepHashCode(grid);
+		result = prime * result + height;
+		result = prime * result + width;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Board other = (Board) obj;
+		if (!Arrays.deepEquals(grid, other.grid))
+			return false;
+		if (height != other.height)
+			return false;
+		if (width != other.width)
+			return false;
+		return true;
 	}
 }
