@@ -1,12 +1,16 @@
 package pl.chelm.pwsz.harsh_crystal;
 
 import java.util.Iterator;
+import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javafx.scene.layout.GridPane;
 
 public final class BoardBuilder {
+	private final static Random RANDOM = new Random();
+	
 	private int currentWidth                = 1;
 	private int currentHeight               = 1;
 	private int currentQuantityOfActorTypes = 1;
@@ -70,7 +74,12 @@ public final class BoardBuilder {
 	public final Board build() {
 		final Board board = Board.newInstance(currentWidth, currentHeight);
 		Iterator<Integer> i = Stream.iterate(1, j -> {if (j >= currentQuantityOfActorTypes) {return 1;} return ++j;}).iterator();
-		board.getEmptyPositionsStream().limit(currentQuantityOfActors)
+		Stream.<Board.EmptyPosition>generate(
+					() -> board.getEmptyPositionsStream()
+					.skip(RANDOM.nextInt((int)board.getEmptyPositionsStream().count())).findAny().get()
+				)
+			.parallel().
+			limit(currentQuantityOfActors)
 		.forEach(p -> p.setOccupant(new Actor(ActorType.getInstance(i.next()))));
 		return board;
 	}
