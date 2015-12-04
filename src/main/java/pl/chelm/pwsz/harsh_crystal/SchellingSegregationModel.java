@@ -3,6 +3,8 @@ package pl.chelm.pwsz.harsh_crystal;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javafx.scene.control.Label;
+
 public final class SchellingSegregationModel extends Simulation {
 	/**
 	 * `tolerance` must be greater than zero.
@@ -77,11 +79,8 @@ public final class SchellingSegregationModel extends Simulation {
 	
 	@Override
 	public void run() {
-		while (isOngoing()) {
-			getUnsatisfiedOccupiedPositionsStream()
-			.forEach(p -> this.relocateOrKillOccupant(p));	
-			/* TODO: Implement graphical representation. */
-		}
+		getUnsatisfiedOccupiedPositionsStream()
+		.forEach(p -> this.relocateOrKillOccupant(p));	
 	}
 
 }

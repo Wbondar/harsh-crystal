@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javafx.scene.layout.GridPane;
+
 public final class BoardBuilder {
 	private int currentWidth                = 1;
 	private int currentHeight               = 1;

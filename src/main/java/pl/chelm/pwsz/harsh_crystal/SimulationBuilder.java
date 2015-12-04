@@ -3,20 +3,9 @@ package pl.chelm.pwsz.harsh_crystal;
 import java.beans.PropertyDescriptor;
 
 public abstract class SimulationBuilder {
-	private final BoardBuilder boardBuilder;
+	private Board board = null;
 	
-	SimulationBuilder() {
-		this(new BoardBuilder());
-	}
-	
-	SimulationBuilder(BoardBuilder boardBuilder) {
-		assert boardBuilder != null;
-		this.boardBuilder = boardBuilder;
-	}
-	
-	public final BoardBuilder getBoardBuilder() {
-		return boardBuilder;
-	}
+	SimulationBuilder() {}
 	
 	public final <V> SimulationBuilder setProperty(String key, final V value) {
 		try {
@@ -41,4 +30,13 @@ public abstract class SimulationBuilder {
 	}
 	
 	public abstract Simulation build();
+
+	public final SimulationBuilder setBoard(final Board board) {
+		this.board = board;
+		return this;
+	}
+	
+	public final Board getBoard() {
+		return board;
+	}
 }

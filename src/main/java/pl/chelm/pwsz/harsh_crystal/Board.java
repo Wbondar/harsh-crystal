@@ -5,6 +5,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 /**
  * Board class represents a filed (or "magic circle", as it sometimes referred),
  * on which simulation takes place.
@@ -100,6 +103,7 @@ public final class Board {
 		 * @param newOccupant
 		 * @return
 		 */
+		
 		public final Position setOccupant(final Actor newOccupant) {
 			Position updatedPosition = null;
 			if (newOccupant != null) {
@@ -211,7 +215,7 @@ public final class Board {
 		this.height = height;
 		this.grid = new Actor[width][height];
 	}
-	
+
 	public static Board newInstance (int width, int height) {
 		if (width > 0 && height > 0) {
 			return new Board(width, height);
