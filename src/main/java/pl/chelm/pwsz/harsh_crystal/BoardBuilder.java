@@ -73,14 +73,8 @@ public final class BoardBuilder {
 
 	public final Board build() {
 		final Board board = Board.newInstance(currentWidth, currentHeight);
-		Iterator<Integer> i = Stream.iterate(1, j -> {if (j >= currentQuantityOfActorTypes) {return 1;} return ++j;}).iterator();
-		Stream.<Board.EmptyPosition>generate(
-					() -> board.getEmptyPositionsStream()
-					.skip(RANDOM.nextInt((int)board.getEmptyPositionsStream().count())).findAny().get()
-				)
-			.parallel().
-			limit(currentQuantityOfActors)
-		.forEach(p -> p.setOccupant(new Actor(ActorType.getInstance(i.next()))));
+		IntStream.rangeClosed(1, currentQuantityOfActors).parallel()
+		.forEach(i -> board.setCellTypeIdSafely(RANDOM.nextInt(currentWidth), RANDOM.nextInt(currentHeight), i % currentQuantityOfActorTypes));
 		return board;
 	}
 }

@@ -9,7 +9,7 @@ public class BoardTest {
 	@Test
 	public void testGetPositionsStream() throws Exception {
 		final Board board = Board.newInstance(10, 10);
-		assertEquals(10 * 10, board.getPositionsStream().count());
+		assertEquals(10 * 10, board.getWidth() * board.getHeight());
 	}
 
 }

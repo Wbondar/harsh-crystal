@@ -1,5 +1,9 @@
 package pl.chelm.pwsz.harsh_crystal;
 
+import java.awt.Canvas;
+import java.awt.Frame;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
@@ -17,25 +21,21 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 
-public final class HarshCrystal extends Application {
-	public static void main (String arguments[]) throws Exception {
-		launch(arguments);
+public final class HarshCrystal extends Frame {
+	public HarshCrystal(Simulation simulation) {
+		setTitle(simulation.getClass().getSimpleName());
+		add(new BoardCanvas(simulation.getBoard()));
+		addWindowListener(new WindowAdapter() {
+		      public void windowClosing(WindowEvent e) {
+		        setVisible(false);
+		        dispose();
+		        System.exit(0);
+		      }
+		    });
+		pack();
 	}
-
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		final GridPane gridPane = new GridPane();
-		gridPane.setAlignment(Pos.TOP_LEFT);
-		gridPane.setHgap(10.0);
-		gridPane.setVgap(10.0);
-		gridPane.setPadding(new Insets(25, 25, 25, 25));
-		
-		primaryStage.setTitle("Harsh Crystal.");
-		
-		Scene scene = new Scene(gridPane, 1024, 1024);
-		primaryStage.setScene(scene);
-		primaryStage.show();
-		
+	
+	public static void main (String arguments[]) throws Exception {
 		Board board = new BoardBuilder()
 			.setWidth(100)
 			.setHeight(100)
@@ -44,22 +44,11 @@ public final class HarshCrystal extends Application {
 			.build()
 		;
 		final Simulation simulation = (new SchellingSegregationModelBuilder( ))
-				.setProperty("tolerance", 1.0 / 3.0)
-				.setBoard(board)
-				.build();
+			.setProperty("tolerance", 1.0 / 3.0)
+			.setBoard(board)
+			.build()
+		;
 		
-		assert simulation.getBoard().getActorsStream().count() == 40L;
-		
-		simulation.getBoard()
-		.getPositionsStream()
-		.forEach(p -> this.display(gridPane, p));
-	}
-
-	private final void display(final GridPane gridPane, final Board.Position position) {
-		if (position.isOccupied()) {
-			gridPane.add(new Label(String.valueOf(position.getOccupant().getType().getId())), position.getX(), position.getY());
-		} else {
-			gridPane.add(new Label("O"), position.getX(), position.getY());
-		}
+		(new HarshCrystal(simulation)).setVisible(true);
 	}
 }

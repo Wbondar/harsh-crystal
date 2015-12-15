@@ -1,6 +1,7 @@
 package pl.chelm.pwsz.harsh_crystal;
 
 import java.util.Optional;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javafx.scene.control.Label;
@@ -10,6 +11,8 @@ public final class SchellingSegregationModel extends Simulation {
 	 * `tolerance` must be greater than zero.
 	 */
 	private final double tolerance;
+	private boolean relocationOccured;
+	private boolean finished = false;
 	
 	private SchellingSegregationModel(final Board board, final double tolerance) {
 		super(board);
@@ -26,61 +29,68 @@ public final class SchellingSegregationModel extends Simulation {
 		return new SchellingSegregationModel(board, 0.3);
 	}
 	
-	private boolean isPositionTolerableForKin(final Board.Position positionToCheck, final ActorType kinToCheck) {
-		long quantityOfAllies = positionToCheck
-				.getOccupiedNeighborhoodStream()
-				.filter(p -> p.getOccupant().getType().equals(kinToCheck))
-				.count();
-		long quantityOfEnemies = positionToCheck.getNeighborhoodStream()
-				.count() - quantityOfAllies;
-		if (quantityOfEnemies <= 0) {
-			return true;
+	private void relocateIfNecessary(int x, int y) {
+		if (isUnsatisfied(x, y)) {
+			relocationOccured = true || relocationOccured ;
+			relocateToNearestEmptyCellOrDie(x, y);
 		}
-		double coefficientOfAllies = quantityOfAllies / quantityOfEnemies;
-		return coefficientOfAllies < tolerance;
 	}
 	
-	private boolean isOccupantUnsatisfied(final Board.OccupiedPosition occupiedPosition) {
-		return isPositionTolerableForKin(occupiedPosition, occupiedPosition.getOccupant().getType());
+	private final void relocateToNearestEmptyCellOrDie(final int x0, final int y0) {
+		final Board board = getBoard();
+		for (int x = x0 - 1; x >= 0 && x < board.getWidth(); x++) {
+			for (int y = y0 - 1; y >= 0 && y < board.getHeight(); y++) {
+				if (board.isEmpty(x, y)) {
+					board.swap(x0, y0, x, y);
+					return;
+				}
+			}
+		}
+		board.emptyCell(x0, y0);
 	}
 
-	
-	private boolean isOccupantSatisfied(final Board.OccupiedPosition occupiedPosition) {
-		return !isOccupantUnsatisfied(occupiedPosition);
-	}
-	
-	private final Stream<Board.OccupiedPosition> getUnsatisfiedOccupiedPositionsStream() {
-		return getBoard()
-				.getOccupiedPositionsStream()
-				.filter(p -> isOccupantUnsatisfied(p));
-	}
-	
-	private final Stream<Board.EmptyPosition> getTolerableNeighborhoodStream(final Board.OccupiedPosition positionOfActorToRelocate) {
-		final ActorType kin = positionOfActorToRelocate.getOccupant().getType();
-		return positionOfActorToRelocate
-				.getEmptyNeighborhoodStream()
-				.filter(p -> isPositionTolerableForKin(p, kin));
-	}
-	
-	private final void relocateOrKillOccupant(Board.OccupiedPosition positionOfActorToRelocate) {
-		Optional<Board.EmptyPosition> aim = getTolerableNeighborhoodStream(positionOfActorToRelocate).findFirst();
-		if (aim.isPresent()) {
-			aim.get().swap(positionOfActorToRelocate);
-		} else {
-			positionOfActorToRelocate.empty();
+	private boolean isUnsatisfied(int x0, int y0) {
+		final Board board = getBoard();
+		if (board.isEmpty(x0, y0) || board.isUnreachable(x0, y0)) {
+			return false;
 		}
+		final int targetCellTypeId = board.getCellTypeId(x0, y0);
+		int quantityOfAllies = 1;
+		int quantityOfEnemies = 0;
+		for (int x = x0 - 1; x >= 0 && x < board.getWidth(); x++) {
+			for (int y = y0 - 1; y >= 0 && y < board.getHeight(); y++) {
+				if (x != x0 && y != y0) {
+					if (board.isOccupied(x, y)) {
+						if (board.getCellTypeId(x, y) == targetCellTypeId) {
+							quantityOfAllies++;
+						} else {
+							quantityOfEnemies++;
+						}
+					}
+				}
+			}
+		}
+		return quantityOfEnemies / quantityOfAllies > tolerance;
 	}
-	
-	@Override
-	public final boolean isFinished() {
-		return !getUnsatisfiedOccupiedPositionsStream()
-					.findAny().isPresent();	
-	}
-	
+
 	@Override
 	public void run() {
-		getUnsatisfiedOccupiedPositionsStream()
-		.forEach(p -> this.relocateOrKillOccupant(p));	
+		if (isOngoing()) {
+			final Board board = getBoard();
+			final int width = board.getWidth();
+			final int height = board.getHeight();
+			relocationOccured = false;
+			IntStream.iterate(0, i -> i++).limit(width)
+			.forEach(x -> IntStream.iterate(0, i -> i++).limit(height).forEach(y -> relocateIfNecessary(x, y)));
+			if (relocationOccured) {
+				finished  = true;
+			}
+		}
+	}
+
+	@Override
+	public boolean isFinished() {
+		return finished;
 	}
 
 }

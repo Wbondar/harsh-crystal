@@ -37,9 +37,5 @@ public class BoardBuilderTest {
 			.build();
 		assertEquals(1000, board.getWidth());
 		assertEquals(1000, board.getHeight());
-		assertEquals(400L, board.getActorsStream().count());
-		assertEquals(400, board.getActors().size());
-		assertEquals(2L, board.getActorTypesStream().count());
-		assertEquals(2, board.getActorTypes().size());
 	}
 }
