@@ -90,7 +90,7 @@ public class Board {
 	}
 
 	public boolean isOccupied(int x, int y) {
-		return getCellTypeId(x, y) >= 0;
+		return getCellTypeId(x, y) > 0;
 	}
 	
 	public boolean isReachable(int x, int y) {

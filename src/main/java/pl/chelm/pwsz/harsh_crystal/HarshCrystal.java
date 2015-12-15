@@ -22,9 +22,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 
 public final class HarshCrystal extends Frame {
+	private Canvas canvas;
+
 	public HarshCrystal(Simulation simulation) {
 		setTitle(simulation.getClass().getSimpleName());
-		add(new BoardCanvas(simulation.getBoard()));
+		this.canvas = new BoardCanvas(simulation.getBoard());
+		add(this.canvas);
 		addWindowListener(new WindowAdapter() {
 		      public void windowClosing(WindowEvent e) {
 		        setVisible(false);
@@ -39,8 +42,8 @@ public final class HarshCrystal extends Frame {
 		Board board = new BoardBuilder()
 			.setWidth(100)
 			.setHeight(100)
-			.setQuantityOfActors(40)
-			.setQuantityOfActorTypes(2)
+			.setQuantityOfActors(100 * 80)
+			.setQuantityOfActorTypes(3)
 			.build()
 		;
 		final Simulation simulation = (new SchellingSegregationModelBuilder( ))
@@ -49,6 +52,13 @@ public final class HarshCrystal extends Frame {
 			.build()
 		;
 		
-		(new HarshCrystal(simulation)).setVisible(true);
+		HarshCrystal harshCrystal = (new HarshCrystal(simulation));
+		harshCrystal.setVisible(true);
+		
+		while(simulation.isOngoing()) {
+			System.out.println("Run.");
+			simulation.run();
+			harshCrystal.canvas.repaint();
+		}
 	}
 }

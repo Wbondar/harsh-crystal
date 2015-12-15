@@ -2,6 +2,9 @@ package pl.chelm.pwsz.harsh_crystal;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
 
 public class BoardBuilderTest {
@@ -37,5 +40,17 @@ public class BoardBuilderTest {
 			.build();
 		assertEquals(1000, board.getWidth());
 		assertEquals(1000, board.getHeight());
+		Set<Integer> types = new HashSet<>();
+		int count = 0;
+		for (int x = 0; x < board.getWidth(); x++) {
+			for (int y = 0; y < board.getHeight(); y++) {
+				if (board.isOccupied(x, y)) {
+					count++;
+					types.add(board.getCellTypeId(x, y));
+				}
+			}
+		}
+		assertEquals(400, count);
+		assertEquals(2, types.size());
 	}
 }

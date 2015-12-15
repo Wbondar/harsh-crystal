@@ -74,7 +74,7 @@ public final class BoardBuilder {
 	public final Board build() {
 		final Board board = Board.newInstance(currentWidth, currentHeight);
 		IntStream.rangeClosed(1, currentQuantityOfActors).parallel()
-		.forEach(i -> board.setCellTypeIdSafely(RANDOM.nextInt(currentWidth), RANDOM.nextInt(currentHeight), i % currentQuantityOfActorTypes));
+		.forEach(i -> board.setCellTypeIdSafely(RANDOM.nextInt(currentWidth), RANDOM.nextInt(currentHeight), i % currentQuantityOfActorTypes + 1));
 		return board;
 	}
 }

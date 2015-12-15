@@ -11,7 +11,6 @@ public final class SchellingSegregationModel extends Simulation {
 	 * `tolerance` must be greater than zero.
 	 */
 	private final double tolerance;
-	private boolean relocationOccured;
 	private boolean finished = false;
 	
 	private SchellingSegregationModel(final Board board, final double tolerance) {
@@ -29,11 +28,14 @@ public final class SchellingSegregationModel extends Simulation {
 		return new SchellingSegregationModel(board, 0.3);
 	}
 	
-	private void relocateIfNecessary(int x, int y) {
+	private boolean relocateIfNecessary(int x, int y) {
+		System.out.println(String.format("Check (%d, %d).", x, y));
 		if (isUnsatisfied(x, y)) {
-			relocationOccured = true || relocationOccured ;
+			System.out.println(String.format("Dweller of (%d, %d) is unsatisfied.", x, y));
 			relocateToNearestEmptyCellOrDie(x, y);
+			return true;
 		}
+		return false;
 	}
 	
 	private final void relocateToNearestEmptyCellOrDie(final int x0, final int y0) {
@@ -41,12 +43,18 @@ public final class SchellingSegregationModel extends Simulation {
 		for (int x = x0 - 1; x >= 0 && x < board.getWidth(); x++) {
 			for (int y = y0 - 1; y >= 0 && y < board.getHeight(); y++) {
 				if (board.isEmpty(x, y)) {
+					System.out.println(String.format("Move %d from (%d, %d) to (%d, %d).", board.getCellTypeId(x0, y0), x0, y0, x, y));
+					final int cellTypeId = board.getCellTypeId(x0, y0);
 					board.swap(x0, y0, x, y);
+					assert board.isEmpty(x0, y0) == true;
+					assert board.getCellTypeId(x, y) == cellTypeId;
 					return;
 				}
 			}
 		}
+		System.out.println(String.format("Kill %d at (%d, %d).", board.getCellTypeId(x0, y0), x0, y0));
 		board.emptyCell(x0, y0);
+		assert board.isEmpty(x0, y0) == true;
 	}
 
 	private boolean isUnsatisfied(int x0, int y0) {
@@ -79,10 +87,14 @@ public final class SchellingSegregationModel extends Simulation {
 			final Board board = getBoard();
 			final int width = board.getWidth();
 			final int height = board.getHeight();
-			relocationOccured = false;
-			IntStream.iterate(0, i -> i++).limit(width)
-			.forEach(x -> IntStream.iterate(0, i -> i++).limit(height).forEach(y -> relocateIfNecessary(x, y)));
-			if (relocationOccured) {
+			boolean relocationOccured = false;
+			for (int x = 0; x < width; x++) {
+				for (int y = 0; y < height; y++) {
+					relocationOccured = relocateIfNecessary(x, y) || relocationOccured;
+				}
+			}
+			if (!relocationOccured) {
+				System.out.println("End.");
 				finished  = true;
 			}
 		}
