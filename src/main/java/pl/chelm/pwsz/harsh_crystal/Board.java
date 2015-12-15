@@ -76,13 +76,17 @@ public class Board {
 	}
 	
 	public void emptyCell(int x, int y) {
-		setCellTypeId(x, y, 0);
+		if (isReachable(x, y)) {
+			grid[x][y] = 0;	
+		}
 	}
 	
 	public void swap(int x0, int y0, int x1, int y1) {
-		int swap = getCellTypeId(x0, y0);
-		setCellTypeId(x0, y0, getCellTypeId(x1, y1));
-		setCellTypeId(x1, y1, swap);
+		if (isReachable(x0, y0) && isReachable(x1, y1)) {
+			int swap = getCellTypeId(x0, y0);
+			setCellTypeId(x0, y0, getCellTypeId(x1, y1));
+			setCellTypeId(x1, y1, swap);
+		}
 	}
 
 	public boolean isEmpty(int x, int y) {

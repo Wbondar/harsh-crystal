@@ -74,6 +74,10 @@ public final class BoardBuilder {
 		this.currentQuantityOfActors = newQuantityOfActors;
 		return this;
 	}
+	
+	public final BoardBuilder setPopulationRate(final double rate) {
+		return setQuantityOfActors((int)(currentWidth * currentHeight * rate));
+	}
 
 	public final Board build() {
 		final Board board = Board.newInstance(currentWidth, currentHeight);

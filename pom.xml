@@ -29,6 +29,14 @@
               <mainClass>pl.chelm.pwsz.harsh_crystal.HarshCrystal</mainClass>
 		    </configuration>
 		</plugin>
+		<plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-surefire-plugin</artifactId>
+		    <version>2.19</version>
+		    <configuration>
+		        <enableAssertions>true</enableAssertions>
+		    </configuration>
+		  </plugin>
     </plugins>
    </build>
     <properties>

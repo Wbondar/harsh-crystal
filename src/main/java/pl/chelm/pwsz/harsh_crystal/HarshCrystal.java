@@ -4,6 +4,9 @@ import java.awt.Canvas;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
@@ -39,26 +42,31 @@ public final class HarshCrystal extends Frame {
 	}
 	
 	public static void main (String arguments[]) throws Exception {
+		Random random = new Random();
 		Board board = new BoardBuilder()
-			.setWidth(100)
-			.setHeight(100)
-			.setQuantityOfActors(100 * 80)
+			.setWidth(random.nextInt(100))
+			.setHeight(random.nextInt(100))
+			.setPopulationRate(random.nextDouble())
 			.setQuantityOfActorTypes(2)
 			.build()
 		;
 		final Simulation simulation = (new SchellingSegregationModelBuilder( ))
-			.setProperty("tolerance", 1.0 / 3.0)
+			.setProperty("tolerance", 1 / (random.nextInt(10) + 1))
 			.setBoard(board)
 			.build()
 		;
 		
 		HarshCrystal harshCrystal = (new HarshCrystal(simulation));
 		harshCrystal.setVisible(true);
-		
-		while(simulation.isOngoing()) {
-			System.out.println("Run.");
-			simulation.run();
-			harshCrystal.canvas.repaint();
-		}
+		assert harshCrystal == null;
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask () {
+
+			@Override
+			public void run() {
+				System.out.println("Run.");
+				simulation.run();
+				harshCrystal.canvas.repaint();
+			}}, 5000, 5000);
 	}
 }

@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import javafx.scene.control.Label;
 
 public final class SchellingSegregationModel extends Simulation {
+	private final static Random RANDOM = new Random();
 	/**
 	 * `tolerance` must be greater than zero.
 	 */
@@ -23,17 +24,14 @@ public final class SchellingSegregationModel extends Simulation {
 		if (board == null) {
 			return null;
 		}
-		if (tolerance > 0. && tolerance < 1.) {
-			return new SchellingSegregationModel(board, tolerance);
-		}
-		return new SchellingSegregationModel(board, 0.3);
+		return new SchellingSegregationModel(board, tolerance);
 	}
 	
 	private boolean relocateIfNecessary(int x, int y) {
 		System.out.println(String.format("Check (%d, %d).", x, y));
 		if (isUnsatisfied(x, y)) {
 			System.out.println(String.format("Dweller of (%d, %d) is unsatisfied.", x, y));
-			relocateToRandomEmptyCellOrDie(x, y);
+			relocateToRandomEmptyCell(x, y);
 			return true;
 		}
 		return false;
@@ -43,24 +41,20 @@ public final class SchellingSegregationModel extends Simulation {
 	 * @param x0 position x of actor to relocate
 	 * @param y0 position y of actor to relocate
 	 */
-	private final void relocateToRandomEmptyCellOrDie(final int x0, final int y0) {
+	private final void relocateToRandomEmptyCell(final int x0, final int y0) {
 		final Board board = getBoard();
-		Random random = new Random();
-		int x = random.nextInt(board.getWidth());
-		int y = random.nextInt(board.getHeight());
-		if (board.isEmpty(x, y)) {
-			System.out.println(String.format("Move %d from (%d, %d) to (%d, %d).", board.getCellTypeId(x0, y0), x0, y0, x, y));
-			final int cellTypeId = board.getCellTypeId(x0, y0);
-			board.swap(x0, y0, x, y);
-			assert board.isEmpty(x0, y0) == true;
-			assert board.getCellTypeId(x, y) == cellTypeId;
-			return;
-		} else {
-			relocateToRandomEmptyCellOrDie(x0, y0);
+		while (true) {
+			int x = RANDOM.nextInt(board.getWidth());
+			int y = RANDOM.nextInt(board.getHeight());
+			if (board.isEmpty(x, y)) {
+				System.out.println(String.format("Move %d from (%d, %d) to (%d, %d).", board.getCellTypeId(x0, y0), x0, y0, x, y));
+				final int cellTypeId = board.getCellTypeId(x0, y0);
+				board.swap(x0, y0, x, y);
+				assert board.isEmpty(x0, y0) == true;
+				assert board.getCellTypeId(x, y) == cellTypeId;
+				return;
+			}
 		}
-		System.out.println(String.format("Kill %d at (%d, %d).", board.getCellTypeId(x0, y0), x0, y0));
-		board.emptyCell(x0, y0);
-		assert board.isEmpty(x0, y0) == true;
 	}
 	/**
 	 * 
@@ -74,18 +68,15 @@ public final class SchellingSegregationModel extends Simulation {
 			return false;
 		}
 		final int targetCellTypeId = board.getCellTypeId(x0, y0);
-		int quantityOfAllies = 1;
+		int quantityOfAllies = 0;
 		int quantityOfEnemies = 0;
-		for (int x = x0 - 1; x >= 0 && x < board.getWidth(); x++) {
-			for (int y = y0 - 1; y >= 0 && y < board.getHeight(); y++) {
-				if (x != x0 && y != y0) {
-					if (board.isOccupied(x, y)) {
-						if (board.getCellTypeId(x, y) == targetCellTypeId) {
-							quantityOfAllies++;
-						} else {
-							quantityOfEnemies++;
-						}
-					}
+		int quantityOfEmpty = 0;
+		for (int x = x0 - 1; x < x0 + 1; x++) {
+			for (int y = y0 - 1; y < y0 + 1; y++) {
+				if (board.getCellTypeId(x, y) == targetCellTypeId) {
+					quantityOfAllies++;
+				} else {
+					quantityOfEnemies++;
 				}
 			}
 		}
