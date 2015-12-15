@@ -2,7 +2,10 @@ package pl.chelm.pwsz.harsh_crystal;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.junit.Test;
@@ -24,6 +27,7 @@ public class BoardBuilderTest {
 	@Test
 	public void testSetQuantityOfActors() throws Exception {
 		BoardBuilder builder = new BoardBuilder();
+		builder.setWidth(11).setHeight(11);
 		builder.setQuantityOfActors(10);
 		assertEquals(10, builder.getQuantityOfActors());
 		builder.setQuantityOfActors(-13);
@@ -32,25 +36,39 @@ public class BoardBuilderTest {
 
 	@Test
 	public void testBuild() throws Exception {
+		final Random random = new Random();
+		final int width = random.nextInt(1000);
+		final int height = random.nextInt(1000);
+		final int quantityOfActors = random.nextInt(width * height);
+		int quantityOfActorTypes = random.nextInt(10) + 1;
+		if (quantityOfActorTypes > quantityOfActors) {
+			quantityOfActorTypes = quantityOfActors;
+		}
 		final Board board = new BoardBuilder()
-			.setWidth(1000)
-			.setHeight(1000)
-			.setQuantityOfActors(400)
-			.setQuantityOfActorTypes(2)
+			.setWidth(width)
+			.setHeight(height)
+			.setQuantityOfActors(quantityOfActors)
+			.setQuantityOfActorTypes(quantityOfActorTypes)
 			.build();
-		assertEquals(1000, board.getWidth());
-		assertEquals(1000, board.getHeight());
+		assertEquals(width, board.getWidth());
+		assertEquals(height, board.getHeight());
 		Set<Integer> types = new HashSet<>();
 		int count = 0;
+		Map<Integer, Integer> groupedCount = new HashMap<Integer, Integer>();
 		for (int x = 0; x < board.getWidth(); x++) {
 			for (int y = 0; y < board.getHeight(); y++) {
 				if (board.isOccupied(x, y)) {
 					count++;
-					types.add(board.getCellTypeId(x, y));
+					final int type = board.getCellTypeId(x, y);
+					types.add(type);
+					groupedCount.put(type,  groupedCount.get(type) != null ? groupedCount.get(type) + 1 : 1);
 				}
 			}
 		}
-		assertEquals(400, count);
-		assertEquals(2, types.size());
+		assertEquals(quantityOfActors, count);
+		assertEquals(quantityOfActorTypes, types.size());
+		for (Integer type : types) {
+			assertEquals(Integer.valueOf(quantityOfActors / quantityOfActorTypes), groupedCount.get(type), 2);
+		}
 	}
 }

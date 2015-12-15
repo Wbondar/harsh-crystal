@@ -43,7 +43,7 @@ public final class HarshCrystal extends Frame {
 			.setWidth(100)
 			.setHeight(100)
 			.setQuantityOfActors(100 * 80)
-			.setQuantityOfActorTypes(3)
+			.setQuantityOfActorTypes(2)
 			.build()
 		;
 		final Simulation simulation = (new SchellingSegregationModelBuilder( ))

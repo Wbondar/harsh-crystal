@@ -100,12 +100,4 @@ public class Board {
 	public boolean isUnreachable(int x, int y) {
 		return !isReachable(x, y);
 	}
-
-	public void setCellTypeIdSafely(int x, int y, int typeId) {
-		if (isEmpty(x, y)) {
-			setCellTypeId(x, y, typeId);
-			return;
-		}
-		/* TODO Implement lookup for nearest empty cell. */
-	}
 }

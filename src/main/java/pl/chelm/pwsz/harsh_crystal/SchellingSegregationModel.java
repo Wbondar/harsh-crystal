@@ -46,8 +46,8 @@ public final class SchellingSegregationModel extends Simulation {
 	private final void relocateToRandomEmptyCellOrDie(final int x0, final int y0) {
 		final Board board = getBoard();
 		Random random = new Random();
-		int x = random.nextInt(board.getWidth() - 1);
-		int y = random.nextInt(board.getHeight() - 1);
+		int x = random.nextInt(board.getWidth());
+		int y = random.nextInt(board.getHeight());
 		if (board.isEmpty(x, y)) {
 			System.out.println(String.format("Move %d from (%d, %d) to (%d, %d).", board.getCellTypeId(x0, y0), x0, y0, x, y));
 			final int cellTypeId = board.getCellTypeId(x0, y0);

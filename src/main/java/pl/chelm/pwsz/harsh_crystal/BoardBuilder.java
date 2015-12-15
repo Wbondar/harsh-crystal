@@ -67,14 +67,33 @@ public final class BoardBuilder {
 			this.currentQuantityOfActors = 0;
 			return this;
 		}
+		if (newQuantityOfActors >= currentWidth * currentHeight) {
+			this.currentQuantityOfActors = currentWidth * currentHeight - 1;
+			return this;
+		}
 		this.currentQuantityOfActors = newQuantityOfActors;
 		return this;
 	}
 
 	public final Board build() {
 		final Board board = Board.newInstance(currentWidth, currentHeight);
-		IntStream.rangeClosed(1, currentQuantityOfActors).parallel()
-		.forEach(i -> board.setCellTypeIdSafely(RANDOM.nextInt(currentWidth), RANDOM.nextInt(currentHeight), i % currentQuantityOfActorTypes + 1));
+		IntStream.rangeClosed(1, currentQuantityOfActors)
+		.forEach(i -> setCellTypeIdSafely(board, i % currentQuantityOfActorTypes + 1));
 		return board;
+	}
+	/**
+	 * The method expects for at least on empty cell to exist on the `board`.
+	 * @param board
+	 * @param typeId
+	 */
+	private void setCellTypeIdSafely(Board board, int typeId) {
+		int x = RANDOM.nextInt(currentWidth);
+		int y = RANDOM.nextInt(currentHeight);
+		if (board.isEmpty(x, y)) {
+			board.setCellTypeId(x, y, typeId);
+		} else {
+			setCellTypeIdSafely(board, typeId);
+		}
+		
 	}
 }
