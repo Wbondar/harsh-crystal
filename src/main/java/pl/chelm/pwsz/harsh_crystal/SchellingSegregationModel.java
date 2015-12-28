@@ -14,6 +14,7 @@ public final class SchellingSegregationModel extends Simulation {
 	 */
 	private final double tolerance;
 	private boolean finished = false;
+	private boolean relocationOccured;
 	
 	private SchellingSegregationModel(final Board board, final double tolerance) {
 		super(board);
@@ -27,14 +28,18 @@ public final class SchellingSegregationModel extends Simulation {
 		return new SchellingSegregationModel(board, tolerance);
 	}
 	
-	private boolean relocateIfNecessary(int x, int y) {
+	private void relocateIfNecessary(int x, int y) {
 		System.out.println(String.format("Check (%d, %d).", x, y));
 		if (isUnsatisfied(x, y)) {
 			System.out.println(String.format("Dweller of (%d, %d) is unsatisfied.", x, y));
 			relocateToRandomEmptyCell(x, y);
-			return true;
+			relocationOccured = true;
+		} else {
+			/*
+			 * If relocation already occured, preserve the information; don't override it.
+			 */
+			relocationOccured = relocationOccured || false;
 		}
-		return false;
 	}
 	/**
 	 * The method assumes, that at least one empty cell exists on the board.
@@ -89,12 +94,13 @@ public final class SchellingSegregationModel extends Simulation {
 			final Board board = getBoard();
 			final int width = board.getWidth();
 			final int height = board.getHeight();
-			boolean relocationOccured = false;
-			for (int x = 0; x < width; x++) {
-				for (int y = 0; y < height; y++) {
-					relocationOccured = relocateIfNecessary(x, y) || relocationOccured;
-				}
-			}
+			relocationOccured = false;
+			/*
+			 * Not obvious method of iterating over a board is used here,
+			 * for native functions interfere with the flow of the simulation.
+			 */
+			IntStream.iterate(width, seed -> {return seed - 1;}).limit(width)
+			.forEach(x -> IntStream.iterate(height, seed -> {return seed - 1;}).limit(height).forEach(y -> relocateIfNecessary(x, y)));
 			if (!relocationOccured) {
 				System.out.println("End.");
 				finished  = true;
