@@ -98,13 +98,10 @@ public final class SchellingSegregationModel extends Simulation {
 			/*
 			 * Not obvious method of iterating over a board is used here,
 			 * for native functions interfere with the flow of the simulation.
+			 * TODO Prevent collisions and missed spots.	
 			 */
-			IntStream.iterate(width, seed -> {return seed - 1;}).limit(width)
-			.forEach(x -> IntStream.iterate(height, seed -> {return seed - 1;}).limit(height).forEach(y -> relocateIfNecessary(x, y)));
-			if (!relocationOccured) {
-				System.out.println("End.");
-				finished  = true;
-			}
+			IntStream.rangeClosed(1, width * height).parallel()
+			.forEach(i -> {relocateIfNecessary(RANDOM.nextInt(width), RANDOM.nextInt(height));});
 		}
 	}
 
