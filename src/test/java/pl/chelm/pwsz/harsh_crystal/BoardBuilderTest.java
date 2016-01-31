@@ -11,67 +11,6 @@ import java.util.Set;
 import org.junit.Test;
 
 public class BoardBuilderTest {
-	@Test 
-	public void testSetWidthWithPropertyWriter() throws Exception {
-		Random random = new Random();
-		Builder<Board> builder = new BoardBuilder();
-		final int width = random.nextInt(100) + 1;
-		builder.setProperty("width", width);
-		assertEquals(width, builder.<Integer>getProperty("width").intValue());
-	}
-	
-	@Test 
-	public void testSetHeightWithPropertyWriter() throws Exception {
-		Random random = new Random();
-		Builder<Board> builder = new BoardBuilder();
-		final int height = random.nextInt(100) + 1;
-		builder.setProperty("height", height);
-		assertEquals(height, builder.<Integer>getProperty("height").intValue());
-	}
-	
-	@Test
-	public void testSetQuantityOfActorTypes() throws Exception {
-		BoardBuilder builder = new BoardBuilder();
-		builder.setWidth(10);
-		builder.setHeight(10);
-		builder.setPopulationRate((float)1.0);
-		builder.setQuantityOfActorTypes(2);
-		assertEquals(2, builder.getQuantityOfActorTypes());
-		builder.setQuantityOfActorTypes(-13);
-		/* 
-		 * In order to avoid division by zero,
-		 * quantity of types of actors has to be positive number.
-		 */
-		assertEquals(1, builder.getQuantityOfActorTypes());
-	}
-	
-	@Test
-	public void testSetPopulationRateWithPropertyWriter() throws Exception {
-		Builder<Board> builder = new BoardBuilder();
-		
-		builder.setProperty("width", 11).setProperty("height", 11);
-		
-		builder.setProperty("populationRate", (float)0.5);
-		assertEquals((float)0.5, builder.<Float>getProperty("populationRate").floatValue(), (float)0.00001);
-	}
-
-	@Test
-	public void testSetPopulationRate() throws Exception {
-		BoardBuilder builder = new BoardBuilder();
-		
-		builder.setWidth(11);
-		builder.setHeight(11);
-		
-		builder.setPopulationRate((float)0.5);
-		assertEquals(0.5, builder.getPopulationRate(), 0.00001);
-		
-		builder.setPopulationRate(1);
-		assertEquals(1, builder.getPopulationRate(), 0.00001);
-		
-		builder.setPopulationRate((float)-1.0);
-		assertEquals(0, builder.getPopulationRate(), 0.00001);
-	}
-
 	@Test
 	public void testBuild() throws Exception {
 		final Random random = new Random();
@@ -118,5 +57,66 @@ public class BoardBuilderTest {
 		for (Integer type : types) {
 			assertEquals(Integer.valueOf(quantityOfActors / quantityOfActorTypes), groupedCount.get(type), 2);
 		}
+	}
+	
+	@Test 
+	public void testSetHeightWithPropertyWriter() throws Exception {
+		Random random = new Random();
+		Builder<Board> builder = new BoardBuilder();
+		final int height = random.nextInt(100) + 1;
+		builder.setProperty("height", height);
+		assertEquals(height, builder.<Integer>getProperty("height").intValue());
+	}
+	
+	@Test
+	public void testSetPopulationRate() throws Exception {
+		BoardBuilder builder = new BoardBuilder();
+		
+		builder.setWidth(11);
+		builder.setHeight(11);
+		
+		builder.setPopulationRate((float)0.5);
+		assertEquals(0.5, builder.getPopulationRate(), 0.00001);
+		
+		builder.setPopulationRate(1);
+		assertEquals(1, builder.getPopulationRate(), 0.00001);
+		
+		builder.setPopulationRate((float)-1.0);
+		assertEquals(0, builder.getPopulationRate(), 0.00001);
+	}
+	
+	@Test
+	public void testSetPopulationRateWithPropertyWriter() throws Exception {
+		Builder<Board> builder = new BoardBuilder();
+		
+		builder.setProperty("width", 11).setProperty("height", 11);
+		
+		builder.setProperty("populationRate", (float)0.5);
+		assertEquals((float)0.5, builder.<Float>getProperty("populationRate").floatValue(), (float)0.00001);
+	}
+
+	@Test
+	public void testSetQuantityOfActorTypes() throws Exception {
+		BoardBuilder builder = new BoardBuilder();
+		builder.setWidth(10);
+		builder.setHeight(10);
+		builder.setPopulationRate((float)1.0);
+		builder.setQuantityOfActorTypes(2);
+		assertEquals(2, builder.getQuantityOfActorTypes());
+		builder.setQuantityOfActorTypes(-13);
+		/* 
+		 * In order to avoid division by zero,
+		 * quantity of types of actors has to be positive number.
+		 */
+		assertEquals(1, builder.getQuantityOfActorTypes());
+	}
+
+	@Test 
+	public void testSetWidthWithPropertyWriter() throws Exception {
+		Random random = new Random();
+		Builder<Board> builder = new BoardBuilder();
+		final int width = random.nextInt(100) + 1;
+		builder.setProperty("width", width);
+		assertEquals(width, builder.<Integer>getProperty("width").intValue());
 	}
 }
