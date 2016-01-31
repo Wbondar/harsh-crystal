@@ -1,103 +1,94 @@
 package pl.chelm.pwsz.harsh_crystal;
 
-import java.util.Iterator;
 import java.util.Random;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import javafx.scene.layout.GridPane;
-
-public final class BoardBuilder {
+public class BoardBuilder extends Builder<Board> {
 	private final static Random RANDOM = new Random();
 	
-	private int currentWidth                = 1;
-	private int currentHeight               = 1;
-	private int currentQuantityOfActorTypes = 1;
-	private int currentQuantityOfActors     = 0;
+	private int    width                = 1;
+	private int    height               = 1;
+	private int    quantityOfActorTypes = 1;
+	private float populationRate       = 0;
 
-	BoardBuilder() {
-	}
-
-	public final BoardBuilder setWidth(final int newWidth) {
+	public void setWidth(final int newWidth) {
 		if (newWidth < 1) {
-			currentWidth = 1;
+			width = 1;
 		} else {
-			currentWidth = newWidth;
+			width = newWidth;
 		}
-		return this;
 	}
 
-	public final BoardBuilder setHeight(final int newHeight) {
+	public void setHeight(final int newHeight) {
 		if (newHeight < 1) {
-			currentHeight = 1;
+			height = 1;
 		} else {
-			currentHeight = newHeight;
+			height = newHeight;
 		}
-		return this;
 	}
 
-	public final int getWidth() {
-		return currentWidth;
+	public int getWidth() {
+		return width;
 	}
 
-	public final int getHeight() {
-		return currentHeight;
+	public int getHeight() {
+		return height;
 	}
 
-	public final int getQuantityOfActorTypes() {
-		return currentQuantityOfActorTypes;
+	public int getQuantityOfActorTypes() {
+		return quantityOfActorTypes;
 	}
 
-	public final BoardBuilder setQuantityOfActorTypes(final int newQuantityOfActorTypes) {
+	public void setQuantityOfActorTypes(final int newQuantityOfActorTypes) {
 		if (newQuantityOfActorTypes < 1) {
-			this.currentQuantityOfActorTypes = 1;
-			return this;
+			this.quantityOfActorTypes = 1;
+			return;
 		}
-		this.currentQuantityOfActorTypes = newQuantityOfActorTypes;
-		return this;
-	}
-
-	public final int getQuantityOfActors() {
-		return currentQuantityOfActors;
-	}
-
-	public final BoardBuilder setQuantityOfActors(final int newQuantityOfActors) {
-		if (newQuantityOfActors < 0) {
-			this.currentQuantityOfActors = 0;
-			return this;
-		}
-		if (newQuantityOfActors >= currentWidth * currentHeight) {
-			this.currentQuantityOfActors = currentWidth * currentHeight - 1;
-			return this;
-		}
-		this.currentQuantityOfActors = newQuantityOfActors;
-		return this;
+		this.quantityOfActorTypes = newQuantityOfActorTypes;
 	}
 	
-	public final BoardBuilder setPopulationRate(final double rate) {
-		return setQuantityOfActors((int)(currentWidth * currentHeight * rate));
+	/**
+	 * Sets quantity of actors on the board 
+	 * according to the size of the board.
+	 * @param newPopulationRate `rate` in (0; 1)
+	 */
+	public void setPopulationRate(float newPopulationRate) {
+		if (newPopulationRate >= 1) {
+			populationRate = 1;
+			return;
+		}
+		if (newPopulationRate <= 0) {
+			populationRate = 0;
+			return;
+		}
+		populationRate = newPopulationRate;
 	}
-
-	public final Board build() {
-		final Board board = Board.newInstance(currentWidth, currentHeight);
-		IntStream.rangeClosed(1, currentQuantityOfActors)
-		.forEach(i -> setCellTypeIdSafely(board, i % currentQuantityOfActorTypes + 1));
-		return board;
+	
+	public float getPopulationRate() {
+		return populationRate;
 	}
+	
 	/**
 	 * The method expects for at least on empty cell to exist on the `board`.
 	 * @param board
 	 * @param typeId
 	 */
 	private void setCellTypeIdSafely(Board board, int typeId) {
-		int x = RANDOM.nextInt(currentWidth);
-		int y = RANDOM.nextInt(currentHeight);
+		int x = RANDOM.nextInt(width);
+		int y = RANDOM.nextInt(height);
 		if (board.isEmpty(x, y)) {
 			board.setCellTypeId(x, y, typeId);
 		} else {
 			setCellTypeIdSafely(board, typeId);
 		}
 		
+	}
+
+	@Override
+	public Board build() {
+		final Board board = Board.newInstance(width, height);
+		IntStream.range(0, Math.round(width * height * populationRate))
+		.forEach(i -> setCellTypeIdSafely(board, i % quantityOfActorTypes + 1));
+		return board;
 	}
 }

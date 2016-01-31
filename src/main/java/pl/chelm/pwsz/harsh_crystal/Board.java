@@ -1,15 +1,4 @@
 package pl.chelm.pwsz.harsh_crystal;
-
-import java.awt.Canvas;
-import java.awt.Graphics;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
 /**
  * Board class represents a filed (or "magic circle", as it sometimes referred),
  * on which simulation takes place.
