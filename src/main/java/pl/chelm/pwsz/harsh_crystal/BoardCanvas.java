@@ -5,19 +5,21 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class BoardCanvas extends Canvas {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 7786397736961190376L;
-	private static final int DEFAULT_CELL_WIDTH = 10;
-	private static final int DEFAULT_CELL_HEIGHT = 10;
-	private static final Color DEFAULT_COLOR = Color.WHITE;
+	
+	private static final int   DEFAULT_CELL_WIDTH      = 10;
+	private static final int   DEFAULT_CELL_HEIGHT     = 10;
+	
+	private static final Color COLOUR_EMPTY_CELL       = Color.WHITE;
+	private static final Color COLOUR_CELL_UNREACHABLE = Color.BLACK;
+	
+	private static final float SATURATION              = 0.9f;
+	private static final float LUMINANCE               = 0.9f;
 	
 	private final Board board;
-	private final List<Color> colors = new ArrayList<Color>();
 	
 	public BoardCanvas(final Board board) {
 		this.setSize(board.getWidth() * DEFAULT_CELL_WIDTH, board.getHeight() * DEFAULT_CELL_HEIGHT);
@@ -26,13 +28,15 @@ public class BoardCanvas extends Canvas {
 	
 	private Color getColor(int cellTypeId) {
 		if (cellTypeId > 0) {
-			if (cellTypeId % 2 == 0) {
-				return new Color(255 / cellTypeId, 0, 0);	
-			} else {
-				return new Color(0, 0, 255 / cellTypeId);	
-			}
+			final float hue = 0.3f * cellTypeId;
+			return Color.getHSBColor(hue, SATURATION, LUMINANCE);
 		}
-		return DEFAULT_COLOR;
+		
+		if (cellTypeId == 0) {
+			return COLOUR_EMPTY_CELL;	
+		}
+		
+		return COLOUR_CELL_UNREACHABLE;
 	}
 
 	@Override
