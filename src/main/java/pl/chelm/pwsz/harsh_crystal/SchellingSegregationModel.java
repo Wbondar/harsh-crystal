@@ -1,6 +1,7 @@
 package pl.chelm.pwsz.harsh_crystal;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 public final class SchellingSegregationModel extends Simulation {
 	private final static Random RANDOM = new Random();
@@ -9,7 +10,7 @@ public final class SchellingSegregationModel extends Simulation {
 	 */
 	private final double tolerance;
 	private boolean finished = false;
-	private boolean relocationOccured;
+	private boolean relocationOccurred;
 	
 	private SchellingSegregationModel(final Board board, final double tolerance) {
 		super(board);
@@ -28,12 +29,12 @@ public final class SchellingSegregationModel extends Simulation {
 		if (isUnsatisfied(x, y)) {
 			System.out.println(String.format("Dweller of (%d, %d) is unsatisfied.", x, y));
 			relocateToRandomEmptyCell(x, y);
-			relocationOccured = true;
+			relocationOccurred = true;
 		} else {
 			/*
 			 * If relocation already occured, preserve the information; don't override it.
 			 */
-			relocationOccured = relocationOccured || false;
+			relocationOccurred = relocationOccurred || false;
 		}
 	}
 	/**
@@ -68,19 +69,27 @@ public final class SchellingSegregationModel extends Simulation {
 			return false;
 		}
 		final int targetCellTypeId = board.getCellTypeId(x0, y0);
-		int quantityOfAllies = 0;
-		int quantityOfEnemies = 0;
-		int quantityOfEmpty = 0;
+		/*
+		 * `double` type is used to avoid type casting.
+		 */
+		double quantityOfEnemies = 0d, quantityOfCells = 0d;
 		for (int x = x0 - 1; x < x0 + 1; x++) {
 			for (int y = y0 - 1; y < y0 + 1; y++) {
-				if (board.getCellTypeId(x, y) == targetCellTypeId) {
-					quantityOfAllies++;
-				} else {
-					quantityOfEnemies++;
+				/*
+				 * Occupied cell means that the cell is reachable (an actor can be placed there)
+				 * and non-empty.
+				 */
+				if (board.isOccupied(x, y)) {
+					if (board.getCellTypeId(x, y) != targetCellTypeId) {
+						quantityOfEnemies++;
+					}
+					quantityOfCells++;
 				}
 			}
 		}
-		return quantityOfEnemies / quantityOfAllies > tolerance;
+		final double hostility = quantityOfEnemies / quantityOfCells;
+		System.out.println(String.format("Hostility %f.", hostility));
+		return hostility > tolerance;
 	}
 
 	@Override
@@ -89,14 +98,21 @@ public final class SchellingSegregationModel extends Simulation {
 			final Board board = getBoard();
 			final int width = board.getWidth();
 			final int height = board.getHeight();
-			relocationOccured = false;
+			relocationOccurred = false;
 			/*
 			 * Not obvious method of iterating over a board is used here,
 			 * for native functions interfere with the flow of the simulation.
 			 * TODO Prevent collisions and missed spots.	
 			 */
-			IntStream.rangeClosed(1, width * height).parallel()
+			IntStream.rangeClosed(1, width * height)
 			.forEach(i -> {relocateIfNecessary(RANDOM.nextInt(width), RANDOM.nextInt(height));});
+			
+			/*
+			 * End execution of the algorithm if no relocations occurred.
+			 */
+			if (!relocationOccurred) {
+				finished = true;
+			}
 		}
 	}
 
