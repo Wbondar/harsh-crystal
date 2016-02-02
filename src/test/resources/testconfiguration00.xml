@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<harshCrystal>
+    <board>
+        <width>5</width>
+        <height>5</height>
+        <quantityOfActorTypes>2</quantityOfActorTypes>
+        <populationRate>0.1</populationRate>
+    </board>
+    <simulation>
+        <builderClass>pl.chelm.pwsz.harsh_crystal.SchellingSegregationModelBuilder</builderClass>
+        <properties>
+            <property>
+                <type>java.lang.Double</type>
+                <name>tolerance</name>
+                <value>1.0</value>
+            </property>
+        </properties>
+    </simulation>
+    <timer>
+        <period>3000</period>
+    </timer>
+</harshCrystal>

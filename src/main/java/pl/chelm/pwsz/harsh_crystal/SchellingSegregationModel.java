@@ -1,11 +1,6 @@
 package pl.chelm.pwsz.harsh_crystal;
 
-import java.util.Optional;
 import java.util.Random;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import javafx.scene.control.Label;
 
 public final class SchellingSegregationModel extends Simulation {
 	private final static Random RANDOM = new Random();
@@ -85,7 +80,7 @@ public final class SchellingSegregationModel extends Simulation {
 
 	@Override
 	public void run() {
-		if (isOngoing()) {
+		while (isOngoing()) {
 			final Board board = getBoard();
 			final int width = board.getWidth();
 			final int height = board.getHeight();

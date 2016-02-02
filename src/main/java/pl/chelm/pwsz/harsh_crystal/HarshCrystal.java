@@ -1,72 +1,150 @@
 package pl.chelm.pwsz.harsh_crystal;
 
-import java.awt.Canvas;
 import java.awt.Frame;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.stream.IntStream;
+import java.util.concurrent.ThreadFactory;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
-public final class HarshCrystal extends Frame {
-	private Canvas canvas;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
-	public HarshCrystal(Simulation simulation) {
-		setTitle(simulation.getClass().getSimpleName());
-		this.canvas = new BoardCanvas(simulation.getBoard());
-		add(this.canvas);
-		addWindowListener(new WindowAdapter() {
-		      public void windowClosing(WindowEvent e) {
-		        setVisible(false);
-		        dispose();
-		        System.exit(0);
-		      }
-		    });
-		pack();
+public final class HarshCrystal extends Frame implements Runnable {
+	private static final long                serialVersionUID = -2726845902979637456L;
+	
+	private static final HarshCrystalFactory FACTORY = new HarshCrystalFactory();
+	private static final int                 DEFAULT_PERIOD  = 1000;
+	
+	private final BoardCanvas boardCanvas;
+	private final Simulation  simulation;
+	
+	private       int         period     = DEFAULT_PERIOD;
+	
+	HarshCrystal(Simulation simulation, BoardCanvas boardCanvas) {
+		this.boardCanvas = boardCanvas;
+		this.simulation  = simulation;
 	}
 	
-	public static void main (String arguments[]) throws Exception {
-		Random random = new Random();
-		Board board = new BoardBuilder()
-			.setWidth(random.nextInt(100))
-			.setHeight(random.nextInt(100))
-			.setPopulationRate(random.nextDouble())
-			.setQuantityOfActorTypes(2)
-			.build()
-		;
-		final Simulation simulation = (new SchellingSegregationModelBuilder( ))
-			.setProperty("tolerance", 1 / (random.nextInt(10) + 1))
-			.setBoard(board)
-			.build()
-		;
+	public static void main (String arguments[]) throws ParserConfigurationException, SAXException, IOException {
+		ThreadFactory threadFactory = Executors.defaultThreadFactory();
 		
-		HarshCrystal harshCrystal = (new HarshCrystal(simulation));
-		harshCrystal.setVisible(true);
-		assert harshCrystal == null;
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask () {
+		/*
+		 * Set up XML parser.
+		 */
+		
+		SAXParserFactory spf = SAXParserFactory.newInstance();
+		spf.setNamespaceAware(true);
+		SAXParser saxParser = spf.newSAXParser();
+		XMLReader xmlReader = saxParser.getXMLReader();
+		ConfigurationFileContentHandler contentHandler = new ConfigurationFileContentHandler();
+		xmlReader.setContentHandler(contentHandler);
 
-			@Override
-			public void run() {
-				System.out.println("Run.");
-				simulation.run();
-				harshCrystal.canvas.repaint();
-			}}, 5000, 5000);
+		Map<String, Object> boardProperties = new HashMap<String, Object>();
+		Map<String, Object> simulationProperties = new HashMap<String, Object>();
+		Map<String, Object> timerProperties = new HashMap<String, Object>();
+		
+		for (String argument : arguments) {
+			/*
+			 * TODO Parse argument as filesystem path.
+			 */
+			String pathToConfigurationFile = argument;
+			
+			/*
+			 * Clear existing maps to avoid creation of unnecessary objects.
+			 */
+			boardProperties.clear();
+			simulationProperties.clear();
+			timerProperties.clear();
+			
+			/*
+			 * Those maps will be populated by values,
+			 * read from the configuration file by the content handler.
+			 */
+			contentHandler.setBoardProperties(boardProperties);
+			contentHandler.setSimulationProperties(simulationProperties);
+			contentHandler.setTimerProperties(timerProperties);
+			
+			xmlReader.parse(pathToConfigurationFile);
+			
+			/*
+			 * Build board entity using properties,
+			 * read from configuration file.
+			 */
+			BoardBuilder boardBuilder = new BoardBuilder();
+			System.out.println("Building board...");
+			for (String key : boardProperties.keySet()) {
+				System.out.println("Key \"" + key + "\".");
+				System.out.println(String.format("Value %s.", boardProperties.get(key)));
+				boardBuilder.setProperty(key, boardProperties.get(key));
+			}
+			
+			/*
+			 * Build simulation entity using properties,
+			 * read from configuration file,
+			 * and board entity instantiated earlier.
+			 */
+			System.out.println("Building simulation...");
+			Class<? extends SimulationBuilder> builderClass = (Class<? extends SimulationBuilder>) simulationProperties.get(ConfigurationFileContentHandler.ExpectedElements.builderClass.name());
+			SimulationBuilder simulationBuilder;
+			try {
+				simulationBuilder = builderClass.newInstance();
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new AssertionError(e);
+			}
+			simulationProperties.remove(ConfigurationFileContentHandler.ExpectedElements.builderClass.name());
+			for (String key : simulationProperties.keySet()) {
+				System.out.println("Key \"" + key + "\".");
+				System.out.println(String.format("Value %s.", simulationProperties.get(key)));
+				simulationBuilder.setProperty(key, simulationProperties.get(key));
+			}
+
+			/*
+			 * Executing instantiated simulation.
+			 */
+			Board board = boardBuilder.build();
+			simulationBuilder.setBoard(board);
+			Simulation simulation = simulationBuilder.build();
+			HarshCrystal harshCrystal = FACTORY.newInstance(simulation);
+			
+			if (harshCrystal == null) {
+				throw new AssertionError("Non-null assertion error.");
+			}
+			harshCrystal.setTimerPeriod((Integer)timerProperties.get("period"));
+
+			/*
+			 * Run simulation.
+			 */
+			Timer timer = new Timer();
+			timer.schedule(new TimerTask () {
+				@Override
+				public void run() {
+					harshCrystal.boardCanvas.repaint();	
+				}}, harshCrystal.period, harshCrystal.period);
+
+			threadFactory.newThread(simulation).start();
+		}
+		
+		
+	}
+	
+	public void setTimerPeriod(int period) {
+		if (period > 0) {
+			this.period = period;	
+		} else {
+			this.period = 1;
+		}
+	}
+
+	@Override
+	public void run() {
 	}
 }
