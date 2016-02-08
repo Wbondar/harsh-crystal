@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<harshCrystal>
+    <board>
+        <!-- 
+		Width and height of a board on which simulation takes place (in number of cells). 
+	-->
+        <width>50</width>
+        <height>50</height>
+        <!-- 
+		Quantity of types of actors which will be placed on a board (quantity of colours of cells).
+	-->
+        <quantityOfActorTypes>2</quantityOfActorTypes>
+	<!-- 
+		Difference (coefficient) between populated cells to total number of cells on a board. 
+	-->
+        <populationRate>0.8</populationRate>
+    </board>
+    <simulation>
+	<!-- 
+		Complete name of a builder class to compose a simulation from provided data.
+		Only `pl.chelm.pwsz.harsh_crystal.SchellingSegregationModelBuilder` is currently available.
+	 -->
+        <builderClass>pl.chelm.pwsz.harsh_crystal.SchellingSegregationModelBuilder</builderClass>
+        <!--
+		Properties of the simulation to take place.
+		Each property consists of the following elements:
+		+ type (complete name of Java class which is responsible for casting the value of the property);
+		+ name (name of a property to be referenced by the program; has to be distinct from other properties);
+		+ value (concrete value of the property to be read by the program; has to be consistent with the type of the property);
+        -->
+        <properties>
+	    <!--
+		`tolerance` property is the rate of hostility which an actor is able to tolerate.
+		The bigger the value, the more non-kin (enemy) actors in neighborhood is allowed.
+		`0` means that no enemies is allowed; `1` means that any number of enemies is allowed.
+	    -->
+            <property>
+                <type>java.lang.Double</type>
+                <name>tolerance</name>
+                <value>0.30</value>
+            </property>
+        </properties>
+    </simulation>
+    <!--
+	Period in which board is re-drawn by the application (in milliseconds).
+    -->
+    <timer>
+        <period>500</period>
+    </timer>
+</harshCrystal>
